@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export KALDI_ROOT=`pwd`/../../..
+export KALDI_ROOT=`pwd`/kaldi
 
 [[ -f $KALDI_ROOT/tools/env.sh ]] && . $KALDI_ROOT/tools/env.sh
 
