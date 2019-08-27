@@ -1,14 +1,14 @@
 #!/bin/bash
 
-lm_order=$1
-data_dir=$2
-
-if [[ -z lm_order ]]; then
-    lm_order=1
-fi
+data_dir=$1
+lm_order=$2
 
 if [[ -z $data_dir ]]; then
     data_dir=data
+fi
+
+if [[ -z $lm_order ]]; then
+    lm_order=1
 fi
 
 loc=`which ngram-count`;
@@ -28,16 +28,12 @@ if [[ -z $loc ]]; then
         fi
 fi
 
-echo
-echo "===== Building language model ====="
-echo
+[[ ! -d $data_dir/lm/ ]] && mkdir $data_dir/lm/
 
 ngram-count -order $lm_order -write-vocab $data_dir/lm/vocab.txt -wbdiscount -text $data_dir/corpus.txt -lm $data_dir/lm/lm-$lm_order.arpa
 
-echo
-echo "===== MAKING G.fst ====="
-echo
-
 lang=$data_dir/lang
 
-arpa2fst --disambig-symbol=#0 --read-symbol-table=$lang/words.txt $data_dir/lm/lm-$lm_order.arpa $lang/G.fst
+[[ ! -d $lang ]] && mkdir $lang
+
+arpa2fst --disambig-symbol=#0 $data_dir/lm/lm-$lm_order.arpa $lang/G.fst
