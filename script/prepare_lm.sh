@@ -1,5 +1,7 @@
 #!/bin/bash
 
+. ./path.sh
+
 data_dir=$1
 lm_order=$2
 

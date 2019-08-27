@@ -1,5 +1,7 @@
 #!/bin/bash
 
+. ./path.sh
+
 data_dir=$1
 
 if [[ -z $data_dir ]]; then

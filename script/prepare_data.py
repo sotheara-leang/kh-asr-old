@@ -6,6 +6,8 @@ import re
 import argparse
 import subprocess
 
+subprocess.call(['. ./path.sh'])
+
 PROJ_HOME = os.environ['PROJ_HOME']
 
 def generate_datasets(options):

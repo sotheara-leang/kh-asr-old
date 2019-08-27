@@ -4,7 +4,7 @@
 ./path.sh || exit 1
 
 # initialization commands
-./cmd.sh || exit 1
+cmd.sh || exit 1
 
 #
 
