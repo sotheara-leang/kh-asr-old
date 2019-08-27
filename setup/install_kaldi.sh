@@ -1,5 +1,6 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
+cd ../
 
 sudo apt-get install atlas autoconf automake git libtool subversion wget zlib
 sudo apt-get install gawk bash grep make perl
@@ -12,8 +13,6 @@ fi
 cd kaldi/tools
 extras/check_dependencies.sh
 make -j 8
-
-# to install srilm, follow kaldi/tools/install_srilm.sh
 
 # src
 cd ../src
