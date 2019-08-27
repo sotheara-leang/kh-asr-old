@@ -9,9 +9,7 @@ import subprocess
 PROJ_HOME = os.environ['PROJ_HOME']
 
 def generate_datasets(options):
-    data_dir = PROJ_HOME + '/' + options.data_dir
-
-    with open(data_dir + '/data.csv', mode='r', encoding='utf-8') as csv_file:
+    with open(options.data_dir + '/data.csv', mode='r', encoding='utf-8') as csv_file:
         reader = csv.reader(csv_file)
 
         records = []
@@ -41,7 +39,7 @@ def generate_datasets(options):
 
         # write data - train set
 
-        train_dir = data_dir + '/' + 'train'
+        train_dir = options.data_dir + '/' + 'train'
         if not os.path.exists(train_dir):
             os.makedirs(train_dir)
 
@@ -68,7 +66,7 @@ def generate_datasets(options):
         if test_set is None or len(test_set) == 0:
             return
 
-        test_dir = data_dir + '/' + 'test'
+        test_dir = options.data_dir + '/' + 'test'
         if not os.path.exists(test_dir):
             os.makedirs(test_dir)
 
