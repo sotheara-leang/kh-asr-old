@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 
 sudo apt-get install atlas autoconf automake git libtool subversion wget zlib
 sudo apt-get install gawk bash grep make perl
