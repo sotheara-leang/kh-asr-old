@@ -20,7 +20,7 @@ make -j 8
 
 # src
 
-cd ../src
+cd $KALDI_ROOT/src
 ./configure
 make depend -j 8
 make -j 8

@@ -6,9 +6,7 @@ import re
 import argparse
 import subprocess
 
-subprocess.call(['. ./path.sh'])
-
-PROJ_HOME = os.environ['PROJ_HOME']
+PROJ_HOME = os.getcwd() + '/..'
 
 def generate_datasets(options):
     with open(options.data_dir + '/data.csv', mode='r', encoding='utf-8') as csv_file:

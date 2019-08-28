@@ -33,9 +33,3 @@ fi
 [[ ! -d $data_dir/lm/ ]] && mkdir $data_dir/lm/
 
 ngram-count -order $lm_order -write-vocab $data_dir/lm/vocab.txt -wbdiscount -text $data_dir/corpus.txt -lm $data_dir/lm/lm-$lm_order.arpa
-
-lang=$data_dir/lang
-
-[[ ! -d $lang ]] && mkdir $lang
-
-arpa2fst --disambig-symbol=#0 $data_dir/lm/lm-$lm_order.arpa $lang/G.fst
