@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export PROJ_HOME=`pwd`/..
+export PROJ_HOME=`pwd`
 
 if [[ -d $PROJ_HOME/kaldi ]]; then
 
