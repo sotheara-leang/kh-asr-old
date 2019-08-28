@@ -30,5 +30,3 @@ make -j 8
 [[ ! -L "steps" ]] && ln -s $KALDI_ROOT/egs/wsj/s5/steps $PROJ_HOME
 
 [[ ! -L "utils" ]] && ln -s $KALDI_ROOT/egs/wsj/s5/utils $PROJ_HOME
-
-[[ ! -L "conf" ]] && ln -s $KALDI_ROOT/egs/wsj/s5/conf $PROJ_HOME

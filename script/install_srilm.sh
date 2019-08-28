@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ./path.sh
+PROJ_HOME=`pwd`/..
 
 cd $PROJ_HOME/kaldi/tools
 

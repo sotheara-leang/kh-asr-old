@@ -10,7 +10,7 @@ data_dir=$1
 output_dir=$2
 lm_order=$3
 
-nj=1 # number of parallel jobs - 1 is perfect for such a small dataset
+nj=4 # number of parallel jobs - 1 is perfect for such a small dataset
 
 if [[ -z $data_dir ]]; then
     data_dir=data
@@ -34,12 +34,15 @@ arpa2fst --disambig-symbol=#0 $data_dir/lm/lm-$lm_order.arpa $lang/G-$lm_order.f
 
 ### feature extraction
 
-steps/make_mfcc.sh --nj 4 $data_dir/train $output_dir/make_mfcc/train mfcc
-steps/compute_cmvn_stats.sh $data_dir/train $output_dir/make_mfcc/train mfcc
+utils/validate_data_dir.sh --no-feats $data_dir/train
+utils/fix_data_dir.sh $data_dir/train
+
+steps/make_mfcc.sh --nj $nj --cmd "$train_cmd" $data_dir/train $output_dir/make_mfcc/train $output_dir/mfcc/train
+steps/compute_cmvn_stats.sh $data_dir/train $output_dir/make_mfcc/train $output_dir/mfcc/train
 
 if [[ -d $data_dir/test ]]; then
-    steps/make_mfcc.sh --nj 4 $data_dir/test $output_dir/exp/make_mfcc/test mfcc
-    steps/compute_cmvn_stats.sh $data_dir/test $output_dir/exp/make_mfcc/test mfcc
+    steps/make_mfcc.sh --nj $nj --cmd "$train_cmd" $data_dir/test $output_dir/make_mfcc/test $output_dir/mfcc/test
+    steps/compute_cmvn_stats.sh $data_dir/test $output_dir/make_mfcc/test $output_dir/mfcc/test
 fi
 
 ### monophone training

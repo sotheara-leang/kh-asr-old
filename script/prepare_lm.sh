@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ./path.sh
+KALDI_ROOT=`pwd`/../kaldi
 
 data_dir=$1
 lm_order=$2

@@ -8,7 +8,7 @@ if [[ -d $PROJ_HOME/kaldi ]]; then
 
     . $KALDI_ROOT/tools/env.sh
 
-    export PATH=$PWD/utils/:$KALDI_ROOT/tools/openfst/bin:$PWD:$PATH
+    export PATH=$PROJ_HOME/utils:$PROJ_HOME/steps:$KALDI_ROOT/tools/openfst/bin:$PROJ_HOME:$PATH
 
     . $KALDI_ROOT/tools/config/common_path.sh
 

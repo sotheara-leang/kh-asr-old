@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ./path.sh
+PROJ_HOME=`pwd`/..
 
 data_dir=$1
 
