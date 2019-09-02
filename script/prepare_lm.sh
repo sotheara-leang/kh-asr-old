@@ -32,4 +32,4 @@ fi
 
 [[ ! -d $data_dir/lm/ ]] && mkdir $data_dir/lm/
 
-ngram-count -order $lm_order -write-vocab $data_dir/lm/vocab.txt -wbdiscount -text $data_dir/corpus.txt -lm $data_dir/lm/lm-$lm_order.arpa
+ngram-count -order $lm_order -write-vocab $data_dir/lm/vocab.txt -wbdiscount -text $data_dir/corpus.txt -lm $data_dir/lm/lm.arpa

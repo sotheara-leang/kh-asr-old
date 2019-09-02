@@ -58,7 +58,7 @@ if [[ $step -eq 1 ]] || [[ $step -eq -1 ]]; then
 
     arpa2fst --disambig-symbol=#0 $data_dir/lm/lm.arpa $lang/G.fst
 
-    eho ">>>>> Extract MFCC features"
+    echo ">>>>> Extract MFCC features"
 
     steps/make_mfcc.sh --nj $nj --cmd "$train_cmd" $data_dir/train $output_dir/make_mfcc/train $output_dir/mfcc/train
     steps/compute_cmvn_stats.sh $data_dir/train $output_dir/make_mfcc/train $output_dir/mfcc/train
