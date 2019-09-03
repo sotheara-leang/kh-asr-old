@@ -25,7 +25,7 @@ if [[ -z $step ]]; then
 fi
 
 if [[ -z $nj ]]; then
-    nj=6
+    nj=4
 fi
 
 # load configuration
