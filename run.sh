@@ -105,12 +105,12 @@ if [[ $step -eq 3 ]] || [[ $step -eq -1 ]]; then
     echo ">>>>> Monophone: alignment"
 
     steps/align_si.sh --boost-silence 1.25 --nj $nj  --cmd "$train_cmd" \
-        $data_dir/train $data_dir/lang $output_dir/$mono_output_dir $output_dir/$mono_output_dir_ali || exit 1
+        $data_dir/train $data_dir/lang $output_dir/$mono_output_dir $output_dir/${mono_output_dir}_ali || exit 1
 
     echo ">>>>> Deltas: training"
 
     steps/train_deltas.sh --cmd "$train_cmd" --boost-silence 1.25  $tri1_num_leaves $tri1_num_gauss  \
-        $data_dir/train $data_dir/lang $output_dir/$mono_output_dir_ali $out_dir || exit 1
+        $data_dir/train $data_dir/lang $output_dir/${mono_output_dir}_ali $out_dir || exit 1
 
     utils/mkgraph.sh $data_dir/lang $out_dir $out_dir/graph
 
@@ -132,12 +132,12 @@ if [[ $step -eq 4 ]] || [[ $step -eq -1 ]]; then
     echo ">>>>> Deltas: alignment"
 
     steps/align_si.sh --boost-silence 1.25 --nj $nj  --cmd "$train_cmd" \
-        $data_dir/train $data_dir/lang $output_dir/$tri1_output_dir $output_dir/$tri1_output_dir_ali || exit 1
+        $data_dir/train $data_dir/lang $output_dir/$tri1_output_dir $output_dir/${tri1_output_dir}_ali || exit 1
 
     echo ">>>>> Deltas + Delta-Deltas: training"
 
     steps/train_deltas.sh --cmd "$train_cmd" --boost-silence 1.25  $tri2_num_leaves $tri2_num_gauss  \
-        $data_dir/train $data_dir/lang $output_dir/$tri1_output_dir_ali $out_dir || exit 1
+        $data_dir/train $data_dir/lang $output_dir/${tri1_output_dir}_ali $out_dir || exit 1
 
     utils/mkgraph.sh $data_dir/lang $out_dir $out_dir/graph
 
@@ -158,12 +158,13 @@ if [[ $step -eq 5 ]] || [[ $step -eq -1 ]]; then
 
     echo ">>>>> Deltas + Delta-Deltas: alignment"
 
-    steps/align_si.sh --nj $nj --cmd "$decode_cmd" $data_dir/train $data_dir/lang $output_dir/$tri2_output_dir $output_dir/$tri2_output_dir_ali || exit 1
+    steps/align_si.sh --nj $nj --cmd "$decode_cmd" $data_dir/train $data_dir/lang \
+        $output_dir/$tri2_output_dir $output_dir/${tri2_output_dir}_ali || exit 1
 
     echo ">>>>> LDA-MLLT: training"
 
     steps/train_lda_mllt.sh --cmd "$train_cmd" $mllt_num_leaves $mllt_num_gauss  \
-        $data_dir/train $data_dir/lang $output_dir/$tri2_output_dir_ali $out_dir || exit 1
+        $data_dir/train $data_dir/lang $output_dir/${tri2_output_dir}_ali $out_dir || exit 1
 
     utils/mkgraph.sh $data_dir/lang  $out_dir $out_dir/graph || exit 1
 
@@ -184,12 +185,13 @@ if [[ $step -eq 6 ]] || [[ $step -eq -1 ]]; then
 
     echo ">>>>> LDA-MLLT: alignment"
 
-    steps/align_si.sh --nj $nj --cmd "$decode_cmd" $data_dir/train $data_dir/lang $output_dir/$mllt_output_dir $output_dir/$mllt_output_dir_ali || exit 1
+    steps/align_si.sh --nj $nj --cmd "$decode_cmd" $data_dir/train $data_dir/lang \
+        $output_dir/$mllt_output_dir $output_dir/${mllt_output_dir}_ali || exit 1
 
     echo ">>>>> LDA-MLLT + SAT: training"
 
     steps/train_sat.sh --cmd "$train_cmd" $sat_num_leaves $sat_num_gauss  \
-        $data_dir/train $data_dir/lang $output_dir/$mllt_output_dir_ali $out_dir || exit 1
+        $data_dir/train $data_dir/lang $output_dir/${mllt_output_dir}_ali $out_dir || exit 1
 
     utils/mkgraph.sh $data_dir/lang  $out_dir $out_dir/graph || exit 1
 
@@ -210,15 +212,16 @@ if [[ $step -eq 7 ]] || [[ $step -eq -1 ]]; then
 
     out_dir=$output_dir/$sgmm2_output_dir
 
-    steps/align_fmllr.sh --nj $nj --cmd "$decode_cmd" $data_dir/train $data_dir/lang $output_dir/$sat_output_dir $output_dir/$sat_output_dir_ali || exit 1
+    steps/align_fmllr.sh --nj $nj --cmd "$decode_cmd" $data_dir/train $data_dir/lang \
+        $output_dir/$sat_output_dir $output_dir/${sat_output_dir}_ali || exit 1
 
     echo ">>>>> SGMM2: training"
 
     steps/train_ubm.sh --cmd "$train_cmd" $sgmm2_ubm_num_gauss \
-        $data_dir/train $data_dir/lang $output_dir/$sat_output_dir_ali $output_dir/$sgmm2_ubm_output_dir || exit 1
+        $data_dir/train $data_dir/lang $output_dir/${sat_output_dir}_ali $output_dir/$sgmm2_ubm_output_dir || exit 1
 
     steps/train_sgmm2.sh --cmd "$train_cmd" $sgmm2_num_leaves $sgmm2_num_gauss \
-        $data_dir/train $data_dir/lang $output_dir/$sat_output_dir_ali $output_dir/$sgmm2_ubm_output_dir/final.ubm $out_dir || exit 1
+        $data_dir/train $data_dir/lang $output_dir/${sat_output_dir}_ali $output_dir/$sgmm2_ubm_output_dir/final.ubm $out_dir || exit 1
 
     utils/mkgraph.sh $data_dir/lang $out_dir $out_dir/graph || exit 1
 
