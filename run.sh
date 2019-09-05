@@ -1,10 +1,15 @@
 #!/bin/bash
 
+if [[ -z ${PROJ_HOME} ]]; then
+    echo "Error - PROJ_HOME is undefine"
+    exit 1
+fi
+
 # initialization PATH
-. ./local/init_env.sh || exit 1
+. $PROJ_HOME/local/init_env.sh || exit 1
 
 # initialization commands
-. ./cmd.sh || exit 1
+. $PROJ_HOME/cmd.sh || exit 1
 
 # parameters
 data_dir=$1

@@ -18,7 +18,13 @@ echo -e "<SIL>\tsil" >> $output_dir/local/dict/lexicon.txt
 echo -e "<UNK>\tsil" >> $output_dir/local/dict/lexicon.txt
 cat $PROJ_HOME/local/dict/lexicon.txt >> $output_dir/local/dict/lexicon.txt
 
-cp $PROJ_HOME/local/dict/nonsilence_phones.txt   $output_dir/local/dict/nonsilence_phones.txt
-cp $PROJ_HOME/local/dict/oov.txt                 $output_dir/local/dict/oov.txt
-cp $PROJ_HOME/local/dict/optional_silence.txt    $output_dir/local/dict/optional_silence.txt
-cp $PROJ_HOME/local/dict/silence_phones.txt      $output_dir/local/dict/silence_phones.txt
+cat $output_dir/local/dict/lexicon.txt | \
+    perl -ane 'print join("\n", @F[1..$#F]) . "\n"; '  | \
+    sort -u | grep -v 'sil' > $output_dir/local/dict/nonsilence_phones.txt
+
+touch $output_dir/local/dict/extra_questions.txt
+touch $output_dir/local/dict/optional_silence.txt
+
+echo "sil"   > $output_dir/local/dict/optional_silence.txt
+echo "sil"   > $output_dir/local/dict/silence_phones.txt
+echo "<UNK>" > $output_dir/local/dict/oov.txt
