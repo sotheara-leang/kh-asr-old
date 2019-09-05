@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # initialization PATH
-. ./path.sh || exit 1
+. ./local/init_env.sh || exit 1
 
 # initialization commands
 . ./cmd.sh || exit 1
@@ -29,7 +29,7 @@ if [[ -z $nj ]]; then
 fi
 
 # load configuration
-. conf/run.conf
+. $PROJ_HOME/conf/main.conf
 
 #### Step 1 - Data preparation ####
 
