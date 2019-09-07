@@ -109,7 +109,7 @@ if [[ $step -eq 3 ]] || [[ $step -eq -1 ]]; then
 
     echo ">>>>> Monophone: alignment"
 
-    steps/align_si.sh --boost-silence 1.25 --nj $nj  --cmd "$train_cmd" \
+    steps/align_si.sh --nj $nj  --cmd "$align_cmd" \
         $data_dir/train $data_dir/lang $output_dir/$mono_output_dir $output_dir/${mono_output_dir}_ali || exit 1
 
     echo ">>>>> Deltas: training"
@@ -136,7 +136,7 @@ if [[ $step -eq 4 ]] || [[ $step -eq -1 ]]; then
 
     echo ">>>>> Deltas: alignment"
 
-    steps/align_si.sh --boost-silence 1.25 --nj $nj  --cmd "$train_cmd" \
+    steps/align_si.sh --nj $nj  --cmd "$align_cmd" \
         $data_dir/train $data_dir/lang $output_dir/$tri1_output_dir $output_dir/${tri1_output_dir}_ali || exit 1
 
     echo ">>>>> Deltas + Delta-Deltas: training"
@@ -163,7 +163,7 @@ if [[ $step -eq 5 ]] || [[ $step -eq -1 ]]; then
 
     echo ">>>>> Deltas + Delta-Deltas: alignment"
 
-    steps/align_si.sh --nj $nj --cmd "$decode_cmd" $data_dir/train $data_dir/lang \
+    steps/align_si.sh --nj $nj --cmd "$align_cmd" $data_dir/train $data_dir/lang \
         $output_dir/$tri2_output_dir $output_dir/${tri2_output_dir}_ali || exit 1
 
     echo ">>>>> LDA-MLLT: training"
@@ -190,7 +190,7 @@ if [[ $step -eq 6 ]] || [[ $step -eq -1 ]]; then
 
     echo ">>>>> LDA-MLLT: alignment"
 
-    steps/align_si.sh --nj $nj --cmd "$decode_cmd" $data_dir/train $data_dir/lang \
+    steps/align_si.sh --nj $nj --cmd "$align_cmd" $data_dir/train $data_dir/lang \
         $output_dir/$mllt_output_dir $output_dir/${mllt_output_dir}_ali || exit 1
 
     echo ">>>>> LDA-MLLT + SAT: training"
@@ -217,7 +217,7 @@ if [[ $step -eq 7 ]] || [[ $step -eq -1 ]]; then
 
     out_dir=$output_dir/$sgmm2_output_dir
 
-    steps/align_fmllr.sh --nj $nj --cmd "$decode_cmd" $data_dir/train $data_dir/lang \
+    steps/align_fmllr.sh --nj $nj --cmd "$align_cmd" $data_dir/train $data_dir/lang \
         $output_dir/$sat_output_dir $output_dir/${sat_output_dir}_ali || exit 1
 
     echo ">>>>> SGMM2: training"
@@ -233,7 +233,7 @@ if [[ $step -eq 7 ]] || [[ $step -eq -1 ]]; then
     echo ">>>>> SGMM2: decoding"
 
     steps/decode_sgmm2.sh --nj $nj --cmd "$decode_cmd" --transform-dir \
-        $output_dir/$sat_output_dir/decode_test $out_dir/graph $output_dir/train $out_dir/decode_test || exit 1
+        $output_dir/$sat_output_dir/decode_test $out_dir/graph $data_dir/test $out_dir/decode_test || exit 1
 fi
 
 #### score
