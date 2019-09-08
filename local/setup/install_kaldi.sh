@@ -7,7 +7,7 @@ cd $PROJ_HOME
 sudo apt-get install atlas autoconf automake git libtool subversion wget zlib
 sudo apt-get install gawk bash grep make perl
 
-if [[ ! -f kaldi ]]; then
+if [[ ! -d kaldi ]]; then
     git clone https://github.com/kaldi-asr/kaldi.git
 fi
 

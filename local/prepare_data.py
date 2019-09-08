@@ -39,6 +39,8 @@ def generate_datasets(options):
 
         # write data - train set
 
+        print(">>>>> Generate train data")
+
         train_dir = options.output_dir + '/' + 'train'
         if not os.path.exists(train_dir):
             os.makedirs(train_dir)
@@ -59,7 +61,10 @@ def generate_datasets(options):
             for record in train_set:
                 utt2spk_writer.write('%s %s\n' % (record[0], record[2]))
 
-            subprocess.Popen(['%s/utils/utt2spk_to_spk2utt.pl' % PROJ_HOME, '%s/utt2spk' % train_dir], stdout=spk2utt_writer)
+            subprocess.call(['%s/utils/utt2spk_to_spk2utt.pl' % PROJ_HOME, '%s/utt2spk' % train_dir], stdout=spk2utt_writer)
+            subprocess.call(['%s/utils/fix_data_dir.sh' % PROJ_HOME, '%s' % train_dir])
+
+        print(">>>>> Generate test data")
 
         # test set
 
@@ -86,8 +91,8 @@ def generate_datasets(options):
             for record in test_set:
                 utt2spk_writer.write('%s %s\n' % (record[0], record[2]))
 
-            subprocess.Popen(['%s/utils/utt2spk_to_spk2utt.pl' % PROJ_HOME, '%s/utt2spk' % test_dir], stdout=spk2utt_writer)
-
+            subprocess.call(['%s/utils/utt2spk_to_spk2utt.pl' % PROJ_HOME, '%s/utt2spk' % test_dir], stdout=spk2utt_writer)
+            subprocess.call(['%s/utils/fix_data_dir.sh' % PROJ_HOME, '%s' % test_dir])
 
 def main():
     parser = argparse.ArgumentParser()

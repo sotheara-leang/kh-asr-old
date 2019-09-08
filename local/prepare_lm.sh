@@ -14,8 +14,13 @@ if [[ -z $lm_order ]]; then
     lm_order=1
 fi
 
-loc=`which ngram-count`;
+word_file=$output_dir/lang/words.txt
+if [[ ! -f $word_file ]]; then
+    echo "$output_dir/lang/words.txt not found"
+    exit 1
+fi
 
+loc=`which ngram-count`;
 if [[ -z $loc ]]; then
         if uname -a | grep 64 >/dev/null; then
             sdir=$KALDI_ROOT/tools/srilm/bin/i686-m64
@@ -33,4 +38,11 @@ fi
 
 [[ ! -d $output_dir/lm ]] && mkdir $output_dir/lm/
 
-ngram-count -order $lm_order -write-vocab $output_dir/lm/vocab.txt -wbdiscount -text $data_dir/corpus.txt -lm $output_dir/lm/lm.arpa
+sort $word_file | awk '{print $1}' | grep -v '\#0' | grep -v '<eps>' | grep -v -F "<unk>" > $output_dir/lm/vocab.txt
+
+ngram-count -order $lm_order -kndiscount -interpolate -vocab $output_dir/lm/vocab.txt \
+    -write-vocab $output_dir/lm/vocab.txt -text $data_dir/corpus.txt -lm $output_dir/lm/lm.arpa
+
+ngram -lm $output_dir/lm/lm.arpa -prune 1e-8 -write-lm $output_dir/lm/lm.arpa
+
+arpa2fst --disambig-symbol=#0 $output_dir/lm/lm.arpa $output_dir/lang/G.fst

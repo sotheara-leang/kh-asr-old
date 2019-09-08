@@ -14,17 +14,19 @@ mkdir -p $output_dir/local/dict
 
 # lexicon
 touch $output_dir/local/dict/lexicon.txt
-echo -e "<SIL>\tsil" >> $output_dir/local/dict/lexicon.txt
-echo -e "<UNK>\tsil" >> $output_dir/local/dict/lexicon.txt
+echo -e "<sil>\tSIL" >> $output_dir/local/dict/lexicon.txt
+echo -e "<unk>\tSIL" >> $output_dir/local/dict/lexicon.txt
 cat $PROJ_HOME/local/dict/lexicon.txt >> $output_dir/local/dict/lexicon.txt
 
-cat $output_dir/local/dict/lexicon.txt | \
+cat $PROJ_HOME/local/dict/lexicon.txt | \
     perl -ane 'print join("\n", @F[1..$#F]) . "\n"; '  | \
-    sort -u | grep -v 'sil' > $output_dir/local/dict/nonsilence_phones.txt
+    sort -u > $output_dir/local/dict/nonsilence_phones.txt
 
 touch $output_dir/local/dict/extra_questions.txt
 touch $output_dir/local/dict/optional_silence.txt
 
-echo "sil"   > $output_dir/local/dict/optional_silence.txt
-echo "sil"   > $output_dir/local/dict/silence_phones.txt
-echo "<UNK>" > $output_dir/local/dict/oov.txt
+echo "SIL"   > $output_dir/local/dict/optional_silence.txt
+echo "SIL"   > $output_dir/local/dict/silence_phones.txt
+echo "<unk>" > $output_dir/local/dict/oov.txt
+
+$PROJ_HOME/utils/prepare_lang.sh $output_dir/local/dict "<unk>" $output_dir/local/lang $output_dir/lang
