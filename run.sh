@@ -5,6 +5,9 @@ if [[ -z ${PROJ_HOME} ]]; then
     exit 1
 fi
 
+# load configuration
+. $PROJ_HOME/conf/main.conf
+
 # initialization PATH
 . $PROJ_HOME/local/init_env.sh 
 
@@ -31,8 +34,15 @@ fi
 
 exp_dir=$output_dir/exp
 
-# load configuration
-. $PROJ_HOME/conf/main.conf
+#### Init output directory ####
+
+rm -rf $output_dir
+mkdir $output_dir
+
+# Init logging file
+mkdir $output_dir/log
+exec > >(tee -i $output_dir/log/log.txt)
+exec 2>&1
 
 #### Step 1 - Data preparation ####
 
