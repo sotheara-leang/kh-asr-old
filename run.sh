@@ -63,24 +63,23 @@ if [[ $step -eq 1 ]] || [[ $step -eq -1 ]]; then
     $PROJ_HOME/local/prepare_lm.sh $data_dir $output_dir $lm_order
 
     echo ">>>>> Validate data"
-    
-    utils/validate_data_dir.sh $output_dir/train
-    utils/fix_data_dir.sh $output_dir/train
 
-    if [[ -d $output_dir/test ]]; then
-        utils/validate_data_dir.sh $output_dir/test
+    {
+        utils/validate_data_dir.sh $output_dir/train;
+        utils/fix_data_dir.sh $output_dir/train;
+
+        utils/validate_data_dir.sh $output_dir/test;
         utils/fix_data_dir.sh $output_dir/test
-    fi
-    
+    }
+
     echo ">>>>> Extract MFCC features"
 
     steps/make_mfcc.sh --nj $nj --cmd "$train_cmd" $output_dir/train $exp_dir/make_mfcc/train $exp_dir/mfcc/train
     steps/compute_cmvn_stats.sh $output_dir/train $exp_dir/make_mfcc/train $exp_dir/mfcc/train
 
-    if [[ -d $exp_dir/test ]]; then
-        steps/make_mfcc.sh --nj $nj --cmd "$train_cmd" $output_dir/test $exp_dir/make_mfcc/test $exp_dir/mfcc/test
-        steps/compute_cmvn_stats.sh $output_dir/test $exp_dir/make_mfcc/test $exp_dir/mfcc/test
-    fi
+    steps/make_mfcc.sh --nj $nj --cmd "$train_cmd" $output_dir/test $exp_dir/make_mfcc/test $exp_dir/mfcc/test
+    steps/compute_cmvn_stats.sh $output_dir/test $exp_dir/make_mfcc/test $exp_dir/mfcc/test
+    
 fi
 
 #### Step 2 - Monophone ####
