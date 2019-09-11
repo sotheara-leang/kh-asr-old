@@ -61,7 +61,7 @@ def generate_datasets(options):
             for record in train_set:
                 utt2spk_writer.write('%s %s\n' % (record[0], record[2]))
 
-            subprocess.call(['%s/utils/utt2spk_to_spk2utt.pl' % PROJ_HOME, '%s/utt2spk' % train_dir], stdout=spk2utt_writer)
+            #subprocess.call(['%s/utils/utt2spk_to_spk2utt.pl' % PROJ_HOME, '%s/utt2spk' % train_dir], stdout=spk2utt_writer)
 
         print(">>>>> Generate test data")
 
@@ -90,7 +90,7 @@ def generate_datasets(options):
             for record in test_set:
                 utt2spk_writer.write('%s %s\n' % (record[0], record[2]))
 
-            subprocess.call(['%s/utils/utt2spk_to_spk2utt.pl' % PROJ_HOME, '%s/utt2spk' % test_dir], stdout=spk2utt_writer)
+            #subprocess.call(['%s/utils/utt2spk_to_spk2utt.pl' % PROJ_HOME, '%s/utt2spk' % test_dir], stdout=spk2utt_writer)
 
 def main():
     parser = argparse.ArgumentParser()

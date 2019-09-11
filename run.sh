@@ -29,19 +29,22 @@ if [[ -z $step ]]; then
 fi
 
 if [[ -z $nj ]]; then
-    nj=5
+    nj=-1
 fi
 
 exp_dir=$output_dir/exp
 
 #### Init output directory ####
 
-rm -rf $output_dir
-mkdir $output_dir
+if [[ $step -eq -1 ]]; then
+    rm -rf $output_dir
+    mkdir $output_dir
+    mkdir $exp_dir
+fi
 
 # Init logging file
-mkdir $output_dir/log
-exec > >(tee -i $output_dir/log/log.txt)
+
+exec > >(tee -i $output_dir/exp/log.txt)
 exec 2>&1
 
 #### Step 1 - Data preparation ####
@@ -52,25 +55,22 @@ if [[ $step -eq 1 ]] || [[ $step -eq -1 ]]; then
     echo "                          Data Preparation                                "
     echo ============================================================================
 
-    python3 $PROJ_HOME/local/prepare_data.py --data_dir $data_dir --output_dir $output_dir --test_ratio $test_set_ratio
-
     echo ">>>>> Prepare dictionary"
 
     $PROJ_HOME/local/prepare_dict.sh $output_dir
+
+    $PROJ_HOME/utils/prepare_lang.sh $output_dir/local/dict "<unk>" $output_dir/local/lang $output_dir/lang
 
     echo ">>>>> Prepare language model"
 
     $PROJ_HOME/local/prepare_lm.sh $data_dir $output_dir $lm_order
 
-    echo ">>>>> Validate data"
+    arpa2fst --disambig-symbol=#0 $output_dir/lm/lm.arpa $output_dir/lang/G.fst
 
-    {
-        utils/validate_data_dir.sh $output_dir/train;
-        utils/fix_data_dir.sh $output_dir/train;
+    python3 $PROJ_HOME/local/prepare_data.py --data_dir $data_dir --output_dir $output_dir --test_ratio $test_set_ratio
 
-        utils/validate_data_dir.sh $output_dir/test;
-        utils/fix_data_dir.sh $output_dir/test
-    }
+    utils/utt2spk_to_spk2utt.pl $PROJ_HOME/$output_dir/train/utt2spk > $PROJ_HOME/$output_dir/train/spk2utt
+    utils/utt2spk_to_spk2utt.pl $PROJ_HOME/$output_dir/test/utt2spk > $PROJ_HOME/$output_dir/test/spk2utt
 
     echo ">>>>> Extract MFCC features"
 
@@ -79,7 +79,16 @@ if [[ $step -eq 1 ]] || [[ $step -eq -1 ]]; then
 
     steps/make_mfcc.sh --nj $nj --cmd "$train_cmd" $output_dir/test $exp_dir/make_mfcc/test $exp_dir/mfcc/test
     steps/compute_cmvn_stats.sh $output_dir/test $exp_dir/make_mfcc/test $exp_dir/mfcc/test
-    
+
+    echo ">>>>> Validate data"
+
+    {
+        utils/validate_data_dir.sh $output_dir/train;
+        utils/validate_data_dir.sh $output_dir/test;
+
+        utils/fix_data_dir.sh $output_dir/train;
+        utils/fix_data_dir.sh $output_dir/test
+    }
 fi
 
 #### Step 2 - Monophone ####
@@ -90,17 +99,18 @@ if [[ $step -eq 2 ]] || [[ $step -eq -1 ]]; then
     echo "                          mono : Monophone                                "
     echo ============================================================================
 
-    out_dir=$exp_dir/$mono_output_dir
-
     echo ">>>>> Monophone: training"
 
-    steps/train_mono.sh --nj $nj --cmd "$train_cmd" $output_dir/train $output_dir/lang $out_dir
+    utils/subset_data_dir.sh $output_dir/train $mono_num_examples $output_dir/train.mono
 
-    utils/mkgraph.sh $output_dir/lang $out_dir $out_dir/graph
+    steps/train_mono.sh --nj $nj --cmd "$train_cmd" $output_dir/train.mono $output_dir/lang $exp_dir/$mono_output_dir || exit 1
+
+    utils/mkgraph.sh $output_dir/lang $exp_dir/$mono_output_dir $exp_dir/$mono_output_dir/graph || exit 1
 
     echo ">>>>> Monophone: decoding"
 
-    steps/decode.sh --nj $nj --cmd "$decode_cmd" $out_dir/graph $output_dir/test $out_dir/decode_test
+    steps/decode.sh --nj $nj --cmd "$decode_cmd" \
+        $exp_dir/$mono_output_dir/graph $output_dir/test $exp_dir/$mono_output_dir/decode_test || exit 1
 fi
 
 #### Step 3 - Deltas ####
@@ -111,23 +121,22 @@ if [[ $step -eq 3 ]] || [[ $step -eq -1 ]]; then
     echo "                                tri1 : Deltas                             "
     echo ============================================================================
 
-    out_dir=$exp_dir/$tri1_output_dir
-
     echo ">>>>> Monophone: alignment"
 
     steps/align_si.sh --nj $nj  --cmd "$align_cmd" \
-        $output_dir/train $output_dir/lang $exp_dir/$mono_output_dir $exp_dir/${mono_output_dir}_ali
+        $output_dir/train $output_dir/lang $exp_dir/$mono_output_dir $exp_dir/${mono_output_dir}_ali || exit 1
 
     echo ">>>>> Deltas: training"
 
     steps/train_deltas.sh --cmd "$train_cmd" --boost-silence 1.25  $tri1_num_leaves $tri1_num_gauss  \
-        $output_dir/train $output_dir/lang $exp_dir/${mono_output_dir}_ali $out_dir
+        $output_dir/train $output_dir/lang $exp_dir/${mono_output_dir}_ali $exp_dir/$tri1_output_dir || exit 1
 
-    utils/mkgraph.sh $output_dir/lang $out_dir $out_dir/graph
+    utils/mkgraph.sh $output_dir/lang $exp_dir/$tri1_output_dir $exp_dir/$tri1_output_dir/graph || exit 1
 
     echo ">>>>> Deltas: decoding"
 
-    steps/decode.sh --nj $nj --cmd "$decode_cmd" $out_dir/graph $output_dir/test $out_dir/decode_test
+    steps/decode.sh --nj $nj --cmd "$decode_cmd" \
+        $exp_dir/$tri1_output_dir/graph $output_dir/test $exp_dir/$tri1_output_dir/decode_test || exit 1
 fi
 
 #### Step 4 - Deltas + Deltas-Deltas ####
@@ -138,23 +147,22 @@ if [[ $step -eq 4 ]] || [[ $step -eq -1 ]]; then
     echo "                      tri2 : Deltas + Delta-Deltas                        "
     echo ============================================================================
 
-    out_dir=$exp_dir/$tri2_output_dir
-
     echo ">>>>> Deltas: alignment"
 
-    steps/align_si.sh --nj $nj  --cmd "$align_cmd" --use-graphs true \
-        $output_dir/train $output_dir/lang $exp_dir/$tri1_output_dir $exp_dir/${tri1_output_dir}_ali
+    steps/align_si.sh --nj $nj  --cmd "$align_cmd" \
+        $output_dir/train $output_dir/lang $exp_dir/$tri1_output_dir $exp_dir/${tri1_output_dir}_ali || exit 1
 
     echo ">>>>> Deltas + Delta-Deltas: training"
 
     steps/train_deltas.sh --cmd "$train_cmd" --boost-silence 1.25  $tri2_num_leaves $tri2_num_gauss  \
-        $output_dir/train $output_dir/lang $exp_dir/${tri1_output_dir}_ali $out_dir
+        $output_dir/train $output_dir/lang $exp_dir/${tri1_output_dir}_ali $exp_dir/$tri2_output_dir || exit 1
 
-    utils/mkgraph.sh $output_dir/lang $out_dir $out_dir/graph
+    utils/mkgraph.sh $output_dir/lang $exp_dir/$tri2_output_dir $exp_dir/$tri2_output_dir/graph || exit 1
 
     echo ">>>>> Deltas + Delta-Deltas: decoding"
 
-    steps/decode.sh --nj $nj --cmd "$decode_cmd" $out_dir/graph $output_dir/test $out_dir/decode_test
+    steps/decode.sh --nj $nj --cmd "$decode_cmd" \
+        $exp_dir/$tri2_output_dir/graph $output_dir/test $exp_dir/$tri2_output_dir/decode_test || exit 1
 fi
 
 #### Step 5 - LDA-MLLT ####
@@ -165,23 +173,22 @@ if [[ $step -eq 5 ]] || [[ $step -eq -1 ]]; then
     echo "                             tri3 : LDA-MLLT                              "
     echo ============================================================================
 
-    out_dir=$exp_dir/$mllt_output_dir
-
     echo ">>>>> Deltas + Delta-Deltas: alignment"
 
     steps/align_si.sh --nj $nj --cmd "$align_cmd" $output_dir/train $output_dir/lang \
-        $exp_dir/$tri2_output_dir $exp_dir/${tri2_output_dir}_ali
+        $exp_dir/$tri2_output_dir $exp_dir/${tri2_output_dir}_ali || exit 1
 
     echo ">>>>> LDA-MLLT: training"
 
     steps/train_lda_mllt.sh --cmd "$train_cmd" $mllt_num_leaves $mllt_num_gauss  \
-        $output_dir/train $output_dir/lang $exp_dir/${tri2_output_dir}_ali $out_dir
+        $output_dir/train $output_dir/lang $exp_dir/${tri2_output_dir}_ali $exp_dir/$mllt_output_dir || exit 1
 
-    utils/mkgraph.sh $output_dir/lang  $out_dir $out_dir/graph
+    utils/mkgraph.sh $output_dir/lang  $exp_dir/$mllt_output_dir $exp_dir/$mllt_output_dir/graph || exit 1
 
     echo ">>>>> LDA-MLLT: decoding"
 
-    steps/decode.sh --nj $nj --cmd "$decode_cmd" $out_dir/graph  $output_dir/test $out_dir/decode_test
+    steps/decode.sh --nj $nj --cmd "$decode_cmd" \
+        $exp_dir/$mllt_output_dir/graph  $output_dir/test $exp_dir/$mllt_output_dir/decode_test || exit 1
 fi
 
 #### Step 6 - LDA-MLLT + SAT ####
@@ -192,23 +199,22 @@ if [[ $step -eq 6 ]] || [[ $step -eq -1 ]]; then
     echo "                         tri4 : LDA-MLLT + SAT                            "
     echo ============================================================================
 
-    out_dir=$exp_dir/$sat_output_dir
-
     echo ">>>>> LDA-MLLT: alignment"
 
-    steps/align_si.sh --nj $nj --cmd "$align_cmd" --use-graphs true $output_dir/train $output_dir/lang \
-        $exp_dir/$mllt_output_dir $exp_dir/${mllt_output_dir}_ali
+    steps/align_si.sh --nj $nj --cmd "$align_cmd" $output_dir/train $output_dir/lang \
+        $exp_dir/$mllt_output_dir $exp_dir/${mllt_output_dir}_ali || exit 1
 
     echo ">>>>> LDA-MLLT + SAT: training"
 
     steps/train_sat.sh --cmd "$train_cmd" $sat_num_leaves $sat_num_gauss  \
-        $output_dir/train $output_dir/lang $exp_dir/${mllt_output_dir}_ali $out_dir
+        $output_dir/train $output_dir/lang $exp_dir/${mllt_output_dir}_ali $exp_dir/$sat_output_dir || exit 1
 
-    utils/mkgraph.sh $output_dir/lang  $out_dir $out_dir/graph
+    utils/mkgraph.sh $output_dir/lang  $exp_dir/$sat_output_dir $exp_dir/$sat_output_dir/graph || exit 1
 
     echo ">>>>> LDA-MLLT + SAT: decoding"
 
-    steps/decode_fmllr.sh --nj $nj --cmd "$decode_cmd" $out_dir/graph  $output_dir/test $out_dir/decode_test
+    steps/decode_fmllr.sh --nj $nj --cmd "$decode_cmd" \
+        $exp_dir/$sat_output_dir/graph  $output_dir/test $exp_dir/$sat_output_dir/decode_test || exit 1
 fi
 
 #### Step 7 - SGMM2  ####
@@ -221,25 +227,25 @@ if [[ $step -eq 7 ]] || [[ $step -eq -1 ]]; then
 
     echo ">>>>> LDA-MLLT + SAT: alignment"
 
-    out_dir=$exp_dir/$sgmm2_output_dir
-
     steps/align_fmllr.sh --nj $nj --cmd "$align_cmd" $output_dir/train $output_dir/lang \
-        $exp_dir/$sat_output_dir $exp_dir/${sat_output_dir}_ali
+        $exp_dir/$sat_output_dir $exp_dir/${sat_output_dir}_ali || exit 1
 
     echo ">>>>> SGMM2: training"
 
     steps/train_ubm.sh --cmd "$train_cmd" $sgmm2_ubm_num_gauss \
-        $output_dir/train $output_dir/lang $exp_dir/${sat_output_dir}_ali $exp_dir/$sgmm2_ubm_output_dir
+        $output_dir/train $output_dir/lang $exp_dir/${sat_output_dir}_ali $exp_dir/$sgmm2_ubm_output_dir || exit 1
 
     steps/train_sgmm2.sh --cmd "$train_cmd" $sgmm2_num_leaves $sgmm2_num_gauss \
-        $output_dir/train $output_dir/lang $exp_dir/${sat_output_dir}_ali $exp_dir/$sgmm2_ubm_output_dir/final.ubm $out_dir
+        $output_dir/train $output_dir/lang $exp_dir/${sat_output_dir}_ali \
+        $exp_dir/$sgmm2_ubm_output_dir/final.ubm $exp_dir/$sgmm2_output_dir || exit 1
 
-    utils/mkgraph.sh $output_dir/lang $out_dir $out_dir/graph
+    utils/mkgraph.sh $output_dir/lang $exp_dir/$sgmm2_output_dir $exp_dir/$sgmm2_output_dir/graph || exit 1
 
     echo ">>>>> SGMM2: decoding"
 
     steps/decode_sgmm2.sh --nj $nj --cmd "$decode_cmd" --transform-dir \
-        $exp_dir/$sat_output_dir/decode_test $out_dir/graph $output_dir/test $out_dir/decode_test
+        $exp_dir/$sat_output_dir/decode_test $exp_dir/$sgmm2_output_dir/graph \
+        $output_dir/test $exp_dir/$sgmm2_output_dir/decode_test || exit 1
 fi
 
 #### score
