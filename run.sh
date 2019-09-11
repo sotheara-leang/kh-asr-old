@@ -65,8 +65,6 @@ if [[ $step -eq 1 ]] || [[ $step -eq -1 ]]; then
 
     $PROJ_HOME/local/prepare_lm.sh $data_dir $output_dir $lm_order
 
-    arpa2fst --disambig-symbol=#0 $output_dir/lm/lm.arpa $output_dir/lang/G.fst
-
     python3 $PROJ_HOME/local/prepare_data.py --data_dir $data_dir --output_dir $output_dir --test_ratio $test_set_ratio
 
     utils/utt2spk_to_spk2utt.pl $PROJ_HOME/$output_dir/train/utt2spk > $PROJ_HOME/$output_dir/train/spk2utt
@@ -101,7 +99,7 @@ if [[ $step -eq 2 ]] || [[ $step -eq -1 ]]; then
 
     echo ">>>>> Monophone: training"
 
-    utils/subset_data_dir.sh $output_dir/train $mono_num_examples $output_dir/train.mono
+    utils/subset_data_dir.sh $output_dir/train $mono_num_examples $output_dir/train.mono || exit 1
 
     steps/train_mono.sh --nj $nj --cmd "$train_cmd" $output_dir/train.mono $output_dir/lang $exp_dir/$mono_output_dir || exit 1
 

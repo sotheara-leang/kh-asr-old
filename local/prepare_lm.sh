@@ -44,3 +44,15 @@ ngram-count -order $lm_order -gt1min 1 -gt2min 1 -gt3min 1 -wbdiscount -interpol
     -write-vocab $output_dir/lm/vocab.txt -text $data_dir/corpus.txt -lm $output_dir/lm/lm.arpa
 
 ngram -lm $output_dir/lm/lm.arpa -prune 1e-8 -write-lm $output_dir/lm/lm.arpa
+
+cat $output_dir/lm/lm.arpa | $PROJ_HOME/utils/find_arpa_oovs.pl $output_dir/lang/words.txt  > $output_dir/lang/oovs.txt
+
+cat $output_dir/lm/lm.arpa |    \
+    grep -v '<s> <s>' | \
+    grep -v '</s> <s>' | \
+    grep -v '</s> </s>' | \
+    arpa2fst - | fstprint | \
+    $PROJ_HOME/utils/remove_oovs.pl $output_dir/lang/oovs.txt | \
+    $PROJ_HOME/utils/eps2disambig.pl | $PROJ_HOME/utils/s2eps.pl | fstcompile --isymbols=$output_dir/lang/words.txt \
+        --osymbols=$output_dir/lang/words.txt  --keep_isymbols=false --keep_osymbols=false | \
+    fstrmepsilon | fstarcsort --sort_type=ilabel > $output_dir/lang/G.fst
