@@ -40,7 +40,7 @@ fi
 
 sort $word_file | awk '{print $1}' | grep -v '\#0' | grep -v '<eps>' | grep -v -F "<unk>" > $output_dir/lm/vocab.txt
 
-ngram-count -order $lm_order -vocab $output_dir/lm/vocab.txt \
+ngram-count -order $lm_order -gt1min 1 -gt2min 1 -gt3min 1 -wbdiscount -interpolate -vocab $output_dir/lm/vocab.txt \
     -write-vocab $output_dir/lm/vocab.txt -text $data_dir/corpus.txt -lm $output_dir/lm/lm.arpa
 
 ngram -lm $output_dir/lm/lm.arpa -prune 1e-8 -write-lm $output_dir/lm/lm.arpa

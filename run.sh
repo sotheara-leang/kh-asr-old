@@ -29,7 +29,7 @@ if [[ -z $step ]]; then
 fi
 
 if [[ -z $nj ]]; then
-    nj=-1
+    nj=4
 fi
 
 exp_dir=$output_dir/exp
