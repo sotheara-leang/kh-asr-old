@@ -57,18 +57,15 @@ if [[ $step -eq 1 ]] || [[ $step -eq -1 ]]; then
 
     echo ">>>>> Prepare dictionary"
 
-    $PROJ_HOME/local/prepare_dict.sh $output_dir
+    local/prepare_dict.sh $output_dir
 
-    $PROJ_HOME/utils/prepare_lang.sh $output_dir/local/dict "<unk>" $output_dir/local/lang $output_dir/lang
+    utils/prepare_lang.sh $output_dir/local/dict "<unk>" $output_dir/local/lang $output_dir/lang
 
     echo ">>>>> Prepare language model"
 
-    $PROJ_HOME/local/prepare_lm.sh $data_dir $output_dir $lm_order
+    local/prepare_lm.sh $data_dir $output_dir $lm_order
 
     python3 $PROJ_HOME/local/prepare_data.py --data_dir $data_dir --output_dir $output_dir --test_ratio $test_set_ratio
-
-    utils/utt2spk_to_spk2utt.pl $PROJ_HOME/$output_dir/train/utt2spk > $PROJ_HOME/$output_dir/train/spk2utt
-    utils/utt2spk_to_spk2utt.pl $PROJ_HOME/$output_dir/test/utt2spk > $PROJ_HOME/$output_dir/test/spk2utt
 
     echo ">>>>> Extract MFCC features"
 
