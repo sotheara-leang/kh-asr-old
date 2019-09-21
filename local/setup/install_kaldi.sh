@@ -5,11 +5,13 @@ KALDI_ROOT=$PROJ_HOME/kaldi
 cd $PROJ_HOME
 
 os=`uname`
-if [[ os -eq 'Darwin' ]]; then
-    brew install automake cmake git graphviz libtool pkg-config wget
+if [[ $os == 'Darwin' ]]; then
+    brew install gcc make automake autoconf bzip2 unzip wget sox libtool git subversion \
+        python3 zlib
 else
-    sudo apt-get install autoconf automake cmake curl g++ git graphviz \
-    libatlas3-base libtool make pkg-config subversion unzip wget zlib1g-dev
+    sudo apt-get update
+    sudo apt-get install g++ make automake autoconf bzip2 unzip wget sox libtool git subversion \
+        python3 zlib1g-dev
 fi
 
 if [[ ! -d kaldi ]]; then
@@ -26,6 +28,9 @@ cd $KALDI_ROOT/src
 ./configure
 make depend -j 8
 make -j 8
+
+#
+make ext
 
 # create symbolic link
 [[ ! -L "steps" ]] && ln -s $KALDI_ROOT/egs/wsj/s5/steps $PROJ_HOME
