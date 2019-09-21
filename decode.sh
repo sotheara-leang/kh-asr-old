@@ -6,15 +6,15 @@
 
 model_dir=$1
 wav_dir=$2
-decode_dir=$3
+output_file=$3
 
-if [[ -z $decode_dir ]]; then
-    decode_dir='./work'
+if [[ -z $output_file ]]; then
+    output_file=$wav_dir/trans.txt
 fi
 
-mkdir -p $decode_dir
+decode_dir=$(mktemp -d -t ci-XXXXXXXXXX)
 
-> $decode_dir/input.scp
+mkdir -p $decode_dir
 
 for f in $wav_dir/*.wav; do
     bf=`basename $f`
@@ -36,4 +36,6 @@ else
     ark,t:$decode_dir/ali.txt
 fi
 
-$PROJ_HOME/utils/int2sym.pl -f 2- $model_dir/words.txt $decode_dir/trans.txt > $wav_dir/trans.txt
+$PROJ_HOME/utils/int2sym.pl -f 2- $model_dir/words.txt $decode_dir/trans.txt > $output_file
+
+rm -rf $decode_dir

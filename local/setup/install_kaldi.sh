@@ -4,8 +4,13 @@ KALDI_ROOT=$PROJ_HOME/kaldi
 
 cd $PROJ_HOME
 
-sudo apt-get install atlas autoconf automake git libtool subversion wget zlib
-sudo apt-get install gawk bash grep make perl
+os=`uname`
+if [[ os -eq 'Darwin' ]]; then
+    brew install automake cmake git graphviz libtool pkg-config wget
+else
+    sudo apt-get install autoconf automake cmake curl g++ git graphviz \
+    libatlas3-base libtool make pkg-config subversion unzip wget zlib1g-dev
+fi
 
 if [[ ! -d kaldi ]]; then
     git clone https://github.com/kaldi-asr/kaldi.git
