@@ -30,11 +30,14 @@ compute-cmvn-stats scp:$decode_dir/feats.scp ark,scp:$decode_dir/cmvn.ark,$decod
 
 cmvn_opts=`cat $decode_dir/cmvn_opts 2>/dev/null`
 
-splice_opts=`cat $decode_dir/splice_opts 2>/dev/null` # frame-splicing options.
+splice_opts=`cat $decode_dir/splice_opts 2>/dev/null`
 
-feats="ark,s,cs:apply-cmvn $cmvn_opts scp:$decode_dir/cmvn.scp scp:$decode_dir/feats.scp ark:- | splice-feats $splice_opts ark:- ark:- | transform-feats $model_dir/final.mat ark:- ark:- |"
+apply-cmvn $cmvn_opts scp:$decode_dir/cmvn.scp scp:$decode_dir/feats.scp ark:- \
+    | splice-feats $splice_opts ark:- ark:- \
+    | transform-feats $model_dir/final.mat ark:- ark:- > $decode_dir/normalized_feats.scp || exit 1
 
-sgmm2-gselect --full-gmm-nbest=15 $model_dir/final.mdl "$feats" "ark:|gzip -c >$decode_dir/gselect.gz" || exit 1;
+sgmm2-gselect --full-gmm-nbest=15 $model_dir/final.mdl \
+    ark,t:$decode_dir/normalized_feats.scp "ark:|gzip -c > $decode_dir/gselect.gz" || exit 1;
 
 gselect="--gselect=ark,s,cs:gunzip -c $decode_dir/gselect.gz| copy-gselect --n=3 ark:- ark:- |"
 
@@ -42,7 +45,7 @@ sgmm2-latgen-faster "$gselect" --max-active=$max_active --beam=$beam --lattice-b
     --acoustic-scale=$acoustic_scale --determinize-lattice=$determinize_lattice --allow-partial=$allow_partial \
     --word-symbol-table=$model_dir/words.txt \
     $model_dir/final.alimdl $model_dir/HCLG.fst \
-    "$feats" ark,t:$decode_dir/lattices.ark ark,t:$decode_dir/trans.txt || exit 1
+    ark,t:$decode_dir/normalized_feats.scp ark,t:$decode_dir/lattices.ark ark,t:$decode_dir/trans.txt || exit 1
 
 $PROJ_HOME/utils/int2sym.pl -f 2- $model_dir/words.txt $decode_dir/trans.txt > $output_file || exit 1
 
