@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-cd $PROJ_HOME/kaldi/tools
+cd $KALDI_ROOT/tools
 
 if [[ ! -d liblbfgs-1.10 ]]; then
     echo Installing libLBFGS library to support MaxEnt LMs

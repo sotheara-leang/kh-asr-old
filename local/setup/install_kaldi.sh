@@ -1,37 +1,67 @@
 #!/usr/bin/env bash
 
-KALDI_ROOT=$PROJ_HOME/kaldi
+INSTALL_DIR=$1
 
-cd $PROJ_HOME
+if [[ -z INSTALL_DIR ]]; then
+    INSTALL_DIR=/opt
+fi
+
+nproc=4
 
 os=`uname`
 if [[ $os == 'Darwin' ]]; then
-    brew install gcc make automake autoconf bzip2 unzip wget sox libtool git subversion \
-        python3 zlib
+    brew install \
+        gcc \
+        make \
+        automake \
+        autoconf \
+        bzip2 \
+        unzip \
+        wget \
+        sox \
+        libtool \
+        git \
+        subversion \
+        python3 \
+        zlib
+
+    brew cask install gfortran
 else
-    sudo apt-get update
-    sudo apt-get install g++ make automake autoconf bzip2 unzip wget sox libtool git subversion \
-        python3 zlib1g-dev
+    apt-get update && apt-get install -y  \
+        autoconf \
+        automake \
+        bzip2 \
+        g++ \
+        git \
+        make \
+        python3 \
+        subversion \
+        unzip \
+        wget \
+        sox \
+        zlib1g-dev \
+        gfortran
 fi
 
-if [[ ! -d kaldi ]]; then
-    git clone https://github.com/kaldi-asr/kaldi.git
-fi
+touch $KALDI_ROOT/tools/python/.use_default_python
 
-# tools
-cd $KALDI_ROOT/tools
-./extras/check_dependencies.sh
-make -j 8
+cd $INSTALL_DIR && [[ ! -d kaldi ]] && git clone https://github.com/kaldi-asr/kaldi.git
 
-# src
-cd $KALDI_ROOT/src
-./configure
-make depend -j 8
-make -j 8
+cd $KALDI_ROOT/tools && \
+    ./extras/check_dependencies.sh && \
+    make -j $(nproc) && \
+    #./install_portaudio.sh && \
+    #./extras/install_mkl.sh && \
 
-#
-make ext
+cd $KALDI_ROOT/src && \
+    ./configure --shared && \
+    make -j $(nproc) depend && \
+    make -j $(nproc) && \
+
+cd $KALDI_ROOT/src && \
+    make -j $(nproc) ext
 
 # create symbolic link
-[[ ! -L "steps" ]] && ln -s $KALDI_ROOT/egs/wsj/s5/steps $PROJ_HOME
-[[ ! -L "utils" ]] && ln -s $KALDI_ROOT/egs/wsj/s5/utils $PROJ_HOME
+
+[[ ! -L $KALDI_ROOT/steps ]] && ln -s $KALDI_ROOT/egs/wsj/s5/steps $KALDI_ROOT
+[[ ! -L $KALDI_ROOT/utils ]] && ln -s $KALDI_ROOT/egs/wsj/s5/utils $KALDI_ROOT
