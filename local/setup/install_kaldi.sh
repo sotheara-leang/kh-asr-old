@@ -43,9 +43,9 @@ else
         gfortran
 fi
 
-touch $KALDI_ROOT/tools/python/.use_default_python
-
 cd $INSTALL_DIR && [[ ! -d kaldi ]] && git clone https://github.com/kaldi-asr/kaldi.git
+
+touch $KALDI_ROOT/tools/python/.use_default_python
 
 cd $KALDI_ROOT/tools && \
     ./extras/check_dependencies.sh && \
