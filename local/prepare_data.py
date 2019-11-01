@@ -5,13 +5,14 @@ import re
 import argparse
 import subprocess
 
-PROJ_HOME = os.environ['PROJ_HOME']
+KALDI_ROOT  = os.environ['KALDI_ROOT']
 
 def read_dataset(data_file):
     if not os.path.exists(data_file):
         raise Exception('data.csv not exist: ' + data_file)
 
     dataset = []
+
     with open(data_file, mode='r', encoding='utf-8') as csv_file:
         reader = csv.reader(csv_file)
 
@@ -65,7 +66,7 @@ def generate_dataset(dataset, in_dataset_dir, out_dataset_dir):
 
     with open(out_dataset_dir + '/spk2utt', mode='w', encoding='utf-8') as spk2utt_writer:
         subprocess.call(
-            ['%s/utils/utt2spk_to_spk2utt.pl' % PROJ_HOME, '%s/utt2spk' % (PROJ_HOME + '/' + out_dataset_dir)],
+            ['%s/utils/utt2spk_to_spk2utt.pl' % KALDI_ROOT, '%s/utt2spk' % out_dataset_dir],
             stdout=spk2utt_writer)
 
 def generate_datasets(options):
@@ -108,7 +109,7 @@ def generate_datasets(options):
         # test
         print(">>>>> Generate test data")
         train_set = read_dataset(data_dir + '/test/data.csv')
-        generate_dataset(train_set, options.data_dir + '/test', options.output_dir + '/' + 'test')
+        generate_dataset(train_set, data_dir + '/test', options.output_dir + '/' + 'test')
 
 def main():
     parser = argparse.ArgumentParser()
