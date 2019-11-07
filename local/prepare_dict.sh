@@ -25,5 +25,5 @@ cat $PROJ_HOME/local/dict/lexicon.txt | \
 touch $output_dir/local/dict/extra_questions.txt
 
 echo "SIL"                      > $output_dir/local/dict/optional_silence.txt
-echo -e "SIL\nSPN\nNSN\nLAU"    > $output_dir/local/dict/silence_phones.txt
+echo -e "SIL\nSPN"              > $output_dir/local/dict/silence_phones.txt
 echo "<unk>"                    > $output_dir/local/dict/oov.txt
