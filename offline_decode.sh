@@ -52,13 +52,13 @@ if [[ $step -eq 1 ]] || [[ $step -eq -1 ]]; then
 
     echo ">>>>> Extract MFCC features"
 
-    $KALDI_ROOT/steps/make_mfcc.sh --nj $nb_job --cmd "$decode_cmd" $output_dir/data $output_dir/make_mfcc $output_dir/mfcc
-    $KALDI_ROOT/steps/compute_cmvn_stats.sh $output_dir/data $output_dir/make_mfcc $output_dir/mfcc
+    steps/make_mfcc.sh --nj $nb_job --cmd "$decode_cmd" $output_dir/data $output_dir/make_mfcc $output_dir/mfcc
+    steps/compute_cmvn_stats.sh $output_dir/data $output_dir/make_mfcc $output_dir/mfcc
 
     echo ">>>>> Validate data"
     {
-        $KALDI_ROOT/utils/validate_data_dir.sh $output_dir/data;
-        $KALDI_ROOT/utils/fix_data_dir.sh $output_dir/data;
+        utils/validate_data_dir.sh $output_dir/data;
+        utils/fix_data_dir.sh $output_dir/data;
     }
 fi
 
@@ -74,7 +74,7 @@ if [[ $step -eq 2 ]] || [[ $step -eq -1 ]]; then
 
     cp $exp_dir/exp/$mono_output_dir/final.mdl $output_dir/$mono_output_dir/
 
-    $KALDI_ROOT/steps/decode.sh --nj $nb_job_decode --cmd "$decode_cmd" \
+    steps/decode.sh --nj $nb_job_decode --cmd "$decode_cmd" \
         $exp_dir/exp/$mono_output_dir/graph $output_dir/data $output_dir/$mono_output_dir/decode_test || exit 1
 fi
 
@@ -90,7 +90,7 @@ if [[ $step -eq 3 ]] || [[ $step -eq -1 ]]; then
 
     cp $exp_dir/exp/$tri1_output_dir/final.mdl $output_dir/$tri1_output_dir/
 
-    $KALDI_ROOT/steps/decode.sh --nj $nb_job_decode --cmd "$decode_cmd" \
+    steps/decode.sh --nj $nb_job_decode --cmd "$decode_cmd" \
         $exp_dir/exp/$tri1_output_dir/graph $output_dir/data $output_dir/$tri1_output_dir/decode_test || exit 1
 fi
 
@@ -106,7 +106,7 @@ if [[ $step -eq 4 ]] || [[ $step -eq -1 ]]; then
 
     cp $exp_dir/exp/$tri2_output_dir/final.mdl $output_dir/$tri2_output_dir/
 
-    $KALDI_ROOT/steps/decode.sh --nj $nb_job_decode --cmd "$decode_cmd" \
+    steps/decode.sh --nj $nb_job_decode --cmd "$decode_cmd" \
         $exp_dir/exp/$tri2_output_dir/graph $output_dir/data $output_dir/$tri2_output_dir/decode_test || exit 1
 fi
 
@@ -123,7 +123,7 @@ if [[ $step -eq 5 ]] || [[ $step -eq -1 ]]; then
     cp $exp_dir/exp/$mllt_output_dir/final.mdl $output_dir/$mllt_output_dir/
     cp $exp_dir/exp/$mllt_output_dir/final.mat $output_dir/$mllt_output_dir/
 
-    $KALDI_ROOT/steps/decode.sh --nj $nb_job_decode --cmd "$decode_cmd" \
+    steps/decode.sh --nj $nb_job_decode --cmd "$decode_cmd" \
         $exp_dir/exp/$mllt_output_dir/graph  $output_dir/data $output_dir/$mllt_output_dir/decode_test || exit 1
 fi
 
@@ -141,7 +141,7 @@ if [[ $step -eq 6 ]] || [[ $step -eq -1 ]]; then
     cp $exp_dir/exp/$sat_output_dir/final.mat $output_dir/$sat_output_dir/
     cp $exp_dir/exp/$sat_output_dir/final.alimdl $output_dir/$sat_output_dir/
 
-    $KALDI_ROOT/steps/decode_fmllr.sh --nj $nb_job_decode --cmd "$decode_cmd" \
+    steps/decode_fmllr.sh --nj $nb_job_decode --cmd "$decode_cmd" \
         $exp_dir/exp/$sat_output_dir/graph  $output_dir/data $output_dir/$sat_output_dir/decode_test || exit 1
 fi
 
@@ -159,11 +159,11 @@ if [[ $step -eq 7 ]] || [[ $step -eq -1 ]]; then
     cp $exp_dir/exp/$sgmm2_output_dir/final.mat $output_dir/$sgmm2_output_dir/
     cp $exp_dir/exp/$sgmm2_output_dir/final.alimdl $output_dir/$sgmm2_output_dir/
 
-    $KALDI_ROOT/steps/decode_sgmm2.sh --nj $nb_job_decode --cmd "$decode_cmd" --transform-dir \
+    steps/decode_sgmm2.sh --nj $nb_job_decode --cmd "$decode_cmd" --transform-dir \
         $exp_dir/exp/$sat_output_dir/decode $exp_dir/$sgmm2_output_dir/graph \
         $output_dir/data $output_dir/$sgmm2_output_dir/decode_test || exit 1
 fi
 
 #### score
 
-for x in $output_dir/*/decode*; do [[ -d $x ]] && grep WER $x/wer_* | $KALDI_ROOT/utils/best_wer.sh; done
+for x in $output_dir/*/decode*; do [[ -d $x ]] && grep WER $x/wer_* | utils/best_wer.sh; done

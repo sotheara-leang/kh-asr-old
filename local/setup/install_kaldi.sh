@@ -63,5 +63,5 @@ cd $KALDI_ROOT/src && \
 
 # create symbolic link
 
-[[ ! -L $PROJ_HOME/steps ]] && ln -s $KALDI_ROOT/egs/wsj/s5/steps $KALDI_ROOT
-[[ ! -L $PROJ_HOME/utils ]] && ln -s $KALDI_ROOT/egs/wsj/s5/utils $KALDI_ROOT
+[[ ! -L $PROJ_HOME/steps ]] && ln -s $KALDI_ROOT/egs/wsj/s5/steps $PROJ_HOME
+[[ ! -L $PROJ_HOME/utils ]] && ln -s $KALDI_ROOT/egs/wsj/s5/utils $PROJ_HOME

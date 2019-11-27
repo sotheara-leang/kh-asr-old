@@ -54,7 +54,7 @@ if [[ $step -eq 1 ]] || [[ $step -eq -1 ]]; then
 
     local/prepare_dict.sh $output_dir
 
-    $KALDI_ROOT/utils/prepare_lang.sh $output_dir/local/dict "<unk>" $output_dir/local/lang $output_dir/lang
+    utils/prepare_lang.sh $output_dir/local/dict "<unk>" $output_dir/local/lang $output_dir/lang
 
     echo ">>>>> Prepare language model"
 
@@ -64,20 +64,20 @@ if [[ $step -eq 1 ]] || [[ $step -eq -1 ]]; then
 
     echo ">>>>> Extract MFCC features"
 
-    $KALDI_ROOT/steps/make_mfcc.sh --nj $nb_job --cmd "$train_cmd" $output_dir/train $exp_dir/make_mfcc/train $exp_dir/mfcc/train
-    $KALDI_ROOT/steps/compute_cmvn_stats.sh $output_dir/train $exp_dir/make_mfcc/train $exp_dir/mfcc/train
+    steps/make_mfcc.sh --nj $nb_job --cmd "$train_cmd" $output_dir/train $exp_dir/make_mfcc/train $exp_dir/mfcc/train
+    steps/compute_cmvn_stats.sh $output_dir/train $exp_dir/make_mfcc/train $exp_dir/mfcc/train
 
-    $KALDI_ROOT/steps/make_mfcc.sh --nj $nb_job --cmd "$train_cmd" $output_dir/test $exp_dir/make_mfcc/test $exp_dir/mfcc/test
-    $KALDI_ROOT/steps/compute_cmvn_stats.sh $output_dir/test $exp_dir/make_mfcc/test $exp_dir/mfcc/test
+    steps/make_mfcc.sh --nj $nb_job --cmd "$train_cmd" $output_dir/test $exp_dir/make_mfcc/test $exp_dir/mfcc/test
+    steps/compute_cmvn_stats.sh $output_dir/test $exp_dir/make_mfcc/test $exp_dir/mfcc/test
 
     echo ">>>>> Validate data"
 
     {
-        $KALDI_ROOT/utils/validate_data_dir.sh $output_dir/train;
-        $KALDI_ROOT/utils/validate_data_dir.sh $output_dir/test;
+        utils/validate_data_dir.sh $output_dir/train;
+        utils/validate_data_dir.sh $output_dir/test;
 
-        $KALDI_ROOT/utils/fix_data_dir.sh $output_dir/train;
-        $KALDI_ROOT/utils/fix_data_dir.sh $output_dir/test
+        utils/fix_data_dir.sh $output_dir/train;
+        utils/fix_data_dir.sh $output_dir/test
     }
 fi
 
@@ -91,15 +91,15 @@ if [[ $step -eq 2 ]] || [[ $step -eq -1 ]]; then
 
     echo ">>>>> Monophone: training"
 
-    $KALDI_ROOT/utils/subset_data_dir.sh $output_dir/train $mono_num_examples $output_dir/train.mono || exit 1
+    utils/subset_data_dir.sh $output_dir/train $mono_num_examples $output_dir/train.mono || exit 1
 
-    $KALDI_ROOT/steps/train_mono.sh --nj $nb_job --cmd "$train_cmd" $output_dir/train.mono $output_dir/lang $exp_dir/$mono_output_dir || exit 1
+    steps/train_mono.sh --nj $nb_job --cmd "$train_cmd" $output_dir/train.mono $output_dir/lang $exp_dir/$mono_output_dir || exit 1
 
-    $KALDI_ROOT/utils/mkgraph.sh $output_dir/lang $exp_dir/$mono_output_dir $exp_dir/$mono_output_dir/graph || exit 1
+    utils/mkgraph.sh $output_dir/lang $exp_dir/$mono_output_dir $exp_dir/$mono_output_dir/graph || exit 1
 
     echo ">>>>> Monophone: decoding"
 
-    $KALDI_ROOT/steps/decode.sh --nj $nb_job_decode --cmd "$decode_cmd" \
+    steps/decode.sh --nj $nb_job_decode --cmd "$decode_cmd" \
         $exp_dir/$mono_output_dir/graph $output_dir/test $exp_dir/$mono_output_dir/decode_test || exit 1
 fi
 
@@ -113,19 +113,19 @@ if [[ $step -eq 3 ]] || [[ $step -eq -1 ]]; then
 
     echo ">>>>> Monophone: alignment"
 
-    $KALDI_ROOT/steps/align_si.sh --nj $nb_job  --cmd "$align_cmd" \
+    steps/align_si.sh --nj $nb_job  --cmd "$align_cmd" \
         $output_dir/train $output_dir/lang $exp_dir/$mono_output_dir $exp_dir/${mono_output_dir}_ali || exit 1
 
     echo ">>>>> Deltas: training"
 
-    $KALDI_ROOT/steps/train_deltas.sh --cmd "$train_cmd" $tri1_num_leaves $tri1_num_gauss  \
+    steps/train_deltas.sh --cmd "$train_cmd" $tri1_num_leaves $tri1_num_gauss  \
         $output_dir/train $output_dir/lang $exp_dir/${mono_output_dir}_ali $exp_dir/$tri1_output_dir || exit 1
 
-    $KALDI_ROOT/utils/mkgraph.sh $output_dir/lang $exp_dir/$tri1_output_dir $exp_dir/$tri1_output_dir/graph || exit 1
+    utils/mkgraph.sh $output_dir/lang $exp_dir/$tri1_output_dir $exp_dir/$tri1_output_dir/graph || exit 1
 
     echo ">>>>> Deltas: decoding"
 
-    $KALDI_ROOT/steps/decode.sh --nj $nb_job_decode --cmd "$decode_cmd" \
+    steps/decode.sh --nj $nb_job_decode --cmd "$decode_cmd" \
         $exp_dir/$tri1_output_dir/graph $output_dir/test $exp_dir/$tri1_output_dir/decode_test || exit 1
 fi
 
@@ -139,19 +139,19 @@ if [[ $step -eq 4 ]] || [[ $step -eq -1 ]]; then
 
     echo ">>>>> Deltas: alignment"
 
-    $KALDI_ROOT/steps/align_si.sh --nj $nb_job  --cmd "$align_cmd" \
+    steps/align_si.sh --nj $nb_job  --cmd "$align_cmd" \
         $output_dir/train $output_dir/lang $exp_dir/$tri1_output_dir $exp_dir/${tri1_output_dir}_ali || exit 1
 
     echo ">>>>> Deltas + Delta-Deltas: training"
 
-    $KALDI_ROOT/steps/train_deltas.sh --cmd "$train_cmd" $tri2_num_leaves $tri2_num_gauss  \
+    steps/train_deltas.sh --cmd "$train_cmd" $tri2_num_leaves $tri2_num_gauss  \
         $output_dir/train $output_dir/lang $exp_dir/${tri1_output_dir}_ali $exp_dir/$tri2_output_dir || exit 1
 
-    $KALDI_ROOT/utils/mkgraph.sh $output_dir/lang $exp_dir/$tri2_output_dir $exp_dir/$tri2_output_dir/graph || exit 1
+    utils/mkgraph.sh $output_dir/lang $exp_dir/$tri2_output_dir $exp_dir/$tri2_output_dir/graph || exit 1
 
     echo ">>>>> Deltas + Delta-Deltas: decoding"
 
-    $KALDI_ROOT/steps/decode.sh --nj $nb_job_decode --cmd "$decode_cmd" \
+    steps/decode.sh --nj $nb_job_decode --cmd "$decode_cmd" \
         $exp_dir/$tri2_output_dir/graph $output_dir/test $exp_dir/$tri2_output_dir/decode_test || exit 1
 fi
 
@@ -165,19 +165,19 @@ if [[ $step -eq 5 ]] || [[ $step -eq -1 ]]; then
 
     echo ">>>>> Deltas + Delta-Deltas: alignment"
 
-    $KALDI_ROOT/steps/align_si.sh --nj $nb_job --cmd "$align_cmd" $output_dir/train $output_dir/lang \
+    steps/align_si.sh --nj $nb_job --cmd "$align_cmd" $output_dir/train $output_dir/lang \
         $exp_dir/$tri2_output_dir $exp_dir/${tri2_output_dir}_ali || exit 1
 
     echo ">>>>> LDA-MLLT: training"
 
-    $KALDI_ROOT/steps/train_lda_mllt.sh --cmd "$train_cmd" $mllt_num_leaves $mllt_num_gauss  \
+    steps/train_lda_mllt.sh --cmd "$train_cmd" $mllt_num_leaves $mllt_num_gauss  \
         $output_dir/train $output_dir/lang $exp_dir/${tri2_output_dir}_ali $exp_dir/$mllt_output_dir || exit 1
 
-    $KALDI_ROOT/utils/mkgraph.sh $output_dir/lang  $exp_dir/$mllt_output_dir $exp_dir/$mllt_output_dir/graph || exit 1
+    utils/mkgraph.sh $output_dir/lang  $exp_dir/$mllt_output_dir $exp_dir/$mllt_output_dir/graph || exit 1
 
     echo ">>>>> LDA-MLLT: decoding"
 
-    $KALDI_ROOT/steps/decode.sh --nj $nb_job_decode --cmd "$decode_cmd" \
+    steps/decode.sh --nj $nb_job_decode --cmd "$decode_cmd" \
         $exp_dir/$mllt_output_dir/graph  $output_dir/test $exp_dir/$mllt_output_dir/decode_test || exit 1
 fi
 
@@ -191,19 +191,19 @@ if [[ $step -eq 6 ]] || [[ $step -eq -1 ]]; then
 
     echo ">>>>> LDA-MLLT: alignment"
 
-    $KALDI_ROOT/steps/align_fmllr.sh --nj $nb_job --cmd "$align_cmd" $output_dir/train $output_dir/lang \
+    steps/align_fmllr.sh --nj $nb_job --cmd "$align_cmd" $output_dir/train $output_dir/lang \
         $exp_dir/$mllt_output_dir $exp_dir/${mllt_output_dir}_ali || exit 1
 
     echo ">>>>> LDA-MLLT + SAT: training"
 
-    $KALDI_ROOT/steps/train_sat.sh --cmd "$train_cmd" $sat_num_leaves $sat_num_gauss  \
+    steps/train_sat.sh --cmd "$train_cmd" $sat_num_leaves $sat_num_gauss  \
         $output_dir/train $output_dir/lang $exp_dir/${mllt_output_dir}_ali $exp_dir/$sat_output_dir || exit 1
 
-    $KALDI_ROOT/utils/mkgraph.sh $output_dir/lang  $exp_dir/$sat_output_dir $exp_dir/$sat_output_dir/graph || exit 1
+    utils/mkgraph.sh $output_dir/lang  $exp_dir/$sat_output_dir $exp_dir/$sat_output_dir/graph || exit 1
 
     echo ">>>>> LDA-MLLT + SAT: decoding"
 
-    $KALDI_ROOT/steps/decode_fmllr.sh --nj $nb_job_decode --cmd "$decode_cmd" \
+    steps/decode_fmllr.sh --nj $nb_job_decode --cmd "$decode_cmd" \
         $exp_dir/$sat_output_dir/graph  $output_dir/test $exp_dir/$sat_output_dir/decode_test || exit 1
 fi
 
@@ -217,27 +217,27 @@ if [[ $step -eq 7 ]] || [[ $step -eq -1 ]]; then
 
     echo ">>>>> LDA-MLLT + SAT: alignment"
 
-    $KALDI_ROOT/steps/align_fmllr.sh --nj $nb_job --cmd "$align_cmd" $output_dir/train $output_dir/lang \
+    steps/align_fmllr.sh --nj $nb_job --cmd "$align_cmd" $output_dir/train $output_dir/lang \
         $exp_dir/$sat_output_dir $exp_dir/${sat_output_dir}_ali || exit 1
 
     echo ">>>>> SGMM2: training"
 
-    $KALDI_ROOT/steps/train_ubm.sh --cmd "$train_cmd" $sgmm2_ubm_num_gauss \
+    steps/train_ubm.sh --cmd "$train_cmd" $sgmm2_ubm_num_gauss \
         $output_dir/train $output_dir/lang $exp_dir/${sat_output_dir}_ali $exp_dir/$sgmm2_ubm_output_dir || exit 1
 
-    $KALDI_ROOT/steps/train_sgmm2.sh --cmd "$train_cmd" $sgmm2_num_leaves $sgmm2_num_gauss \
+    steps/train_sgmm2.sh --cmd "$train_cmd" $sgmm2_num_leaves $sgmm2_num_gauss \
         $output_dir/train $output_dir/lang $exp_dir/${sat_output_dir}_ali \
         $exp_dir/$sgmm2_ubm_output_dir/final.ubm $exp_dir/$sgmm2_output_dir || exit 1
 
-    $KALDI_ROOT/utils/mkgraph.sh $output_dir/lang $exp_dir/$sgmm2_output_dir $exp_dir/$sgmm2_output_dir/graph || exit 1
+    utils/mkgraph.sh $output_dir/lang $exp_dir/$sgmm2_output_dir $exp_dir/$sgmm2_output_dir/graph || exit 1
 
     echo ">>>>> SGMM2: decoding"
 
-    $KALDI_ROOT/steps/decode_sgmm2.sh --nj $nb_job_decode --cmd "$decode_cmd" --transform-dir \
+    steps/decode_sgmm2.sh --nj $nb_job_decode --cmd "$decode_cmd" --transform-dir \
         $exp_dir/$sat_output_dir/decode_test $exp_dir/$sgmm2_output_dir/graph \
         $output_dir/test $exp_dir/$sgmm2_output_dir/decode_test || exit 1
 fi
 
 #### score
 
-for x in $exp_dir/*/decode*; do [[ -d $x ]] && grep WER $x/wer_* | $KALDI_ROOT/utils/best_wer.sh; done
+for x in $exp_dir/*/decode*; do [[ -d $x ]] && grep WER $x/wer_* | utils/best_wer.sh; done
