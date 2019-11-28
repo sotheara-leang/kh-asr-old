@@ -9,10 +9,10 @@ fi
 . $PROJ_HOME/conf/main.conf
 
 # initialization PATH
-. $PROJ_HOME/local/init_env.sh 
+. $PROJ_HOME/local/init_env.sh
 
 # initialization commands
-. $PROJ_HOME/cmd.sh 
+. $PROJ_HOME/cmd.sh
 
 # parameters
 exp_dir=$1
@@ -140,6 +140,7 @@ if [[ $step -eq 6 ]] || [[ $step -eq -1 ]]; then
     cp $exp_dir/exp/$sat_output_dir/final.mdl $output_dir/$sat_output_dir/
     cp $exp_dir/exp/$sat_output_dir/final.mat $output_dir/$sat_output_dir/
     cp $exp_dir/exp/$sat_output_dir/final.alimdl $output_dir/$sat_output_dir/
+    cp $exp_dir/exp/$sat_output_dir/tree $output_dir/$sat_output_dir/
 
     steps/decode_fmllr.sh --nj $nb_job_decode --cmd "$decode_cmd" \
         $exp_dir/exp/$sat_output_dir/graph  $output_dir/data $output_dir/$sat_output_dir/decode_test || exit 1
@@ -153,14 +154,12 @@ if [[ $step -eq 7 ]] || [[ $step -eq -1 ]]; then
     echo "                              SGMM2 Decoding                              "
     echo ============================================================================
 
-    mkdir $output_dir/$sgmm2_output_dir/
-
     cp $exp_dir/exp/$sgmm2_output_dir/final.mdl $output_dir/$sgmm2_output_dir/
     cp $exp_dir/exp/$sgmm2_output_dir/final.mat $output_dir/$sgmm2_output_dir/
     cp $exp_dir/exp/$sgmm2_output_dir/final.alimdl $output_dir/$sgmm2_output_dir/
 
     steps/decode_sgmm2.sh --nj $nb_job_decode --cmd "$decode_cmd" --transform-dir \
-        $exp_dir/exp/$sat_output_dir/decode $exp_dir/$sgmm2_output_dir/graph \
+        $output_dir/$sat_output_dir/decode_test $exp_dir/exp/$sgmm2_output_dir/graph \
         $output_dir/data $output_dir/$sgmm2_output_dir/decode_test || exit 1
 fi
 
