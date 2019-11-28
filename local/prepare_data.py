@@ -72,9 +72,16 @@ def generate_dataset(dataset, in_dataset_dir, out_dataset_dir):
 def generate_datasets(options):
     data_dir = options.data_dir
 
-    ds_mode = 0 # 0 : all, 1: train-test
-    if os.path.exists(data_dir + '/train') and os.path.exists(data_dir + '/test'):
-        ds_mode = 1
+    ds_mode = options.mode # 0 : all, 1: train-test, 2: offline-decode
+
+    if ds_mode == 2:
+        print(">>>>> Generate data")
+        data_set = read_dataset(data_dir + '/data.csv')
+        generate_dataset(data_set, data_dir, options.output_dir)
+
+    else:
+        if os.path.exists(data_dir + '/train') and os.path.exists(data_dir + '/test'):
+            ds_mode = 1
 
     if ds_mode == 0:
         if not os.path.exists(data_dir + '/all'):
@@ -117,6 +124,7 @@ def main():
     parser.add_argument('--data_dir', type=str)
     parser.add_argument('--output_dir', type=str)
     parser.add_argument('--test_ratio', type=str, default='0.05')
+    parser.add_argument('--mode', type=int, default=0)
 
     options = parser.parse_args()
 
