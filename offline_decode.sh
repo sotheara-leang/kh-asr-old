@@ -32,7 +32,7 @@ fi
 
 if [[ $step -eq -1 ]]; then
     rm -rf $output_dir
-    mkdir $output_dir
+    mkdir -p $output_dir
 fi
 
 # Init logging file
