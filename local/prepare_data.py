@@ -115,8 +115,8 @@ def generate_datasets(options):
 
         # test
         print(">>>>> Generate test data")
-        train_set = read_dataset(data_dir + '/test/data.csv')
-        generate_dataset(train_set, data_dir + '/test', options.output_dir + '/' + 'test')
+        test_set = read_dataset(data_dir + '/test/data.csv')
+        generate_dataset(test_set, data_dir + '/test', options.output_dir + '/' + 'test')
 
 def main():
     parser = argparse.ArgumentParser()
