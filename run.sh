@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ -z ${PROJ_HOME} ]]; then
-    echo "Error - PROJ_HOME is undefine"
+    echo "Error - PROJ_HOME is undefined"
     exit 1
 fi
 
@@ -64,11 +64,11 @@ if [[ $step -eq 1 ]] || [[ $step -eq -1 ]]; then
 
     echo ">>>>> Extract MFCC features"
 
-    steps/make_mfcc.sh --nj $nb_job --cmd "$train_cmd" $output_dir/train $exp_dir/make_mfcc/train $exp_dir/mfcc/train
-    steps/compute_cmvn_stats.sh $output_dir/train $exp_dir/make_mfcc/train $exp_dir/mfcc/train
+    steps/make_mfcc.sh --nj $nb_job --cmd "$train_cmd" $output_dir/train $exp_dir/make_mfcc/train $exp_dir/mfcc/train || exit 1
+    steps/compute_cmvn_stats.sh $output_dir/train $exp_dir/make_mfcc/train $exp_dir/mfcc/train || exit 1
 
-    steps/make_mfcc.sh --nj $nb_job --cmd "$train_cmd" $output_dir/test $exp_dir/make_mfcc/test $exp_dir/mfcc/test
-    steps/compute_cmvn_stats.sh $output_dir/test $exp_dir/make_mfcc/test $exp_dir/mfcc/test
+    steps/make_mfcc.sh --nj $nb_job --cmd "$train_cmd" $output_dir/test $exp_dir/make_mfcc/test $exp_dir/mfcc/test || exit 1
+    steps/compute_cmvn_stats.sh $output_dir/test $exp_dir/make_mfcc/test $exp_dir/mfcc/test || exit 1
 
     echo ">>>>> Validate data"
 

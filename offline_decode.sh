@@ -52,8 +52,8 @@ if [[ $step -eq 1 ]] || [[ $step -eq -1 ]]; then
 
     echo ">>>>> Extract MFCC features"
 
-    steps/make_mfcc.sh --nj $nb_job --cmd "$decode_cmd" $output_dir/data $output_dir/make_mfcc $output_dir/mfcc
-    steps/compute_cmvn_stats.sh $output_dir/data $output_dir/make_mfcc $output_dir/mfcc
+    steps/make_mfcc.sh --nj $nb_job --cmd "$decode_cmd" $output_dir/data $output_dir/make_mfcc $output_dir/mfcc || exit 1
+    steps/compute_cmvn_stats.sh $output_dir/data $output_dir/make_mfcc $output_dir/mfcc || exit 1
 
     echo ">>>>> Validate data"
     {
